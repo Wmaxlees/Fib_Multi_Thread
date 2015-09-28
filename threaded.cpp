@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <thread>
 
 #define     MAX_FIB_CALCULABLE      1500
 
@@ -53,7 +54,9 @@ void calculateFibUpToIndex(short index) {
 
     for (short i = 0; i < index; ++i) {
         short temp = i;
-        pthread_create(&(threads[i]), NULL, calculateFibIndex, (void*)&temp);
+        while (pthread_create(&(threads[i]), NULL, calculateFibIndex, (void*)&temp) != 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
 
     for (short i = 0; i < index; ++i) {

@@ -6,7 +6,7 @@
 #include <chrono>
 #include <cmath>
 #include <unistd.h>
-#include <stdio.h>
+#include <cstdlib>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <thread>
@@ -74,14 +74,11 @@ void calculateFibUpToIndex(short index) {
 
     maxIndex = index;
 
-    for (short i = 0; i < index; ++i) {
-        pid_t  pid;
+    pid_t pid = 1;
+    for (short i = 0; i < index && pid > 0; ++i) {
         while((pid = fork()) < 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            pid = fork();
         }
-
-        std::cout << i << std::endl;
 
         if (pid == 0) {
             // --child
@@ -90,13 +87,15 @@ void calculateFibUpToIndex(short index) {
             // Calculate the #
             fib[i] = calculateFibIndex(i);
 
-
             // Release the shared memory link
             close(shared_memory);
-            exit(0);
+            std::exit(0);
 
         } else if (pid > 0) {
-            // Parent
+            //- Parent
+
+            wait(NULL);
+
             continue;
         } else {
             std::cerr << "Failed fork()" << std::endl;
@@ -106,11 +105,14 @@ void calculateFibUpToIndex(short index) {
 }
 
 double calculateFibIndex(short i) {
+
     // Calculate Fib
     return one_over_root_five * pow(phi, i) - one_over_root_five * pow(phi_not, i);
 }
 
 void toString() {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     for (short i = 0; i < maxIndex; ++i) {
         std::cout << "Fib(" << std::to_string(i) << ")=" << std::to_string(fib[i]) << "\n";
     }
